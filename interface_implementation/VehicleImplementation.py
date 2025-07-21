@@ -1,30 +1,18 @@
 from model.Car import Car 
 import time
+from datamanager.DataConnector import DataConnector
 class VehicleImplementation:
   def __init__(self, cars):
         self.cars = {car.vehicleId: car for car in cars} 
-  @staticmethod
-  def typewriter_print_fast(text, delay=0.000005):
-          """Simulates typing effect for the given text."""
-          for char in text:
-              print(char, end='', flush=True)
-              time.sleep(delay)
-          print()
-  def typewriter_print_slow(text, delay=0.005):
-          """Simulates typing effect for the given text."""
-          for char in text:
-              print(char, end='', flush=True)
-              time.sleep(delay)
-          print()      
-
+     
   def listAll(self):
     if not self.cars:
-        self.typewriter_print_slow("No cars in inventory.")
+        print("No cars in inventory.")
         return
-    self.typewriter_print_slow("All Cars:")
+    print("All Cars:")
     for car in self.cars.values():
-        self.typewriter_print_fast(
-            f"{car.get_make()}, {car.get_model()}, {car.get_color()}, {car.get_odometerReading()}, {car.get_price()}"
+        print(
+            f"{car.get_vehicleId()}, {car.get_make()}, {car.get_model()}, {car.get_color()}, {car.get_odometerReading()}, {car.get_price()}"
         )
     return self.cars
   
@@ -37,20 +25,35 @@ class VehicleImplementation:
     odometerReading = input("odometerReading: ")
     price = input("price: ")
     new_car = Car(vehicleId, make, model, color, odometerReading, price)
-    pass
+    connector = DataConnector("localhost", "root", "yearup24", "dealershipworkshop")
+    connection = connector.connection
+    cursor = connection.cursor()
+    cursor.execute(
+    "INSERT INTO vehicles (vin, make, model, color, odometerReading, price) VALUES (%s, %s, %s, %s, %s, %s)",
+    (vehicleId, make, model, color, odometerReading, price)) 
+    connection.commit()  # Commit the transaction!
+    self.cars[vehicleId] = new_car  # Add to in-memory dict
+    print(f"Car with vehicleId {vehicleId} has been added.")
+    connection.close()
+   
   
   def delete(self):
       vehicleId = input("Enter the vehicleId of the car to delete: ")
-      if vehicleId in self.cars:
-        del self.cars[vehicleId]
-        self.typewriter_print_slow(f"Car with vehicleId {vehicleId} has been deleted.")
+      connector = DataConnector("localhost", "root", "yearup24", "dealershipworkshop")
+      connection = connector.connection
+      cursor = connection.cursor()
+      if cursor.rowcount > 0:
+        cursor.execute("DELETE FROM vehicles WHERE vin = %s", (vehicleId,))
+        print(f"Car with vehicleId {vehicleId} has been deleted.")
+        if vehicleId in self.cars:
+            del self.cars[vehicleId]
       else:
-          self.typewriter_print_slow(f"Car with vehicleId {vehicleId} not found.")
-          pass
+          print(f"Car with vehicleId {vehicleId} not found.")
+          connection.close()
       
   def update(self):
       vehicleId = input("please enter the vehicle id of the car you want to update: ")
-      self.typewriter_print_slow ("If you dont want to update a field, just enter its present info.")
+      print("If you dont want to update a field, just enter its present info.")
       if vehicleId in self.cars:
           make = input("enter new make: ")
           model= input("enter new make and model:")
@@ -58,19 +61,19 @@ class VehicleImplementation:
           odometerReading = input("enter new odometer reading: ")
           price = input("enter new price: ")
           car = self.cars[vehicleId]
-          self.typewriter_print_slow(f"Updating car with vehicleId {vehicleId}...")
-          time.sleep(2)
-          self.typewriter_print_slow(f"details have been updated to:{make}, {model}, {color}, {odometerReading}, {price}")
-      else: 
-          self.typewriter_print_slow(f"Car with vehicleId {vehicleId} not found.")
-          pass
+          connector = DataConnector("localhost", "root", "yearup24", "dealershipworkshop")
+          connection = connector.connection
+          cursor = connection.cursor()
+          cursor.execute(
+              "UPDATE vehicles SET make = %s, model = %s, color = %s, odometerReading = %s, price = %s WHERE vin = %s",
+              (make , model, color , odometerReading , price , vehicleId))
       
   def find(self):
       vehicleId = input("enter the vehicleId of the car you want to find: ")
       if vehicleId in self.cars:
           car = self.cars[vehicleId]
-          self.typewriter_print_fast(f"Car found: {car.get_make()}, {car.get_model()}, {car.get_color()}, {car.get_odometerReading()}, {car.get_price()}")
+          print(f"Car found: {car.get_make()}, {car.get_model()}, {car.get_color()}, {car.get_odometerReading()}, {car.get_price()}")
       else:
-          self.typewriter_print_slow(f"Car with vehicleId {vehicleId} not found.")
+          print(f"Car with vehicleId {vehicleId} not found.")
           return self.cars
   

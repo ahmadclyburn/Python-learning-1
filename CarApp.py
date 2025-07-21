@@ -3,6 +3,7 @@ from datamanager.DataConnector import DataConnector
 from model.Car import Car
 class CarApp:
     @staticmethod
+    
     def main():
         connector = DataConnector("localhost", "root", "yearup24", "dealershipworkshop")
         connection = connector.connection
