@@ -1,6 +1,9 @@
 
 from abc import ABC, abstractmethod
-class VehiclInterface(ABC):
+class VehicleInterface(ABC):
+    @abstractmethod
+    def listAll(self):
+        pass
     @abstractmethod
     def delete(self):
         pass
